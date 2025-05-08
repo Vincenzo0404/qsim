@@ -7,9 +7,9 @@ Input
 
 3. Leggere un secondo file contenente:
 
-4. Definizione di matrici complesse 2ⁿ×2ⁿ con direttive #define.
+ - Definizione di matrici complesse 2ⁿ×2ⁿ con direttive #define.
 
-5. La sequenza del circuito quantistico da simulare con la direttiva #circ.
+ - La sequenza del circuito quantistico da simulare con la direttiva #circ.
 
 Elaborazione
 1. Rappresentare numeri complessi, ed eseguire operazioni: somma, prodotto e modulo.
@@ -43,50 +43,6 @@ manipolazione stringhe
 moltiplicazione matrici o numeri complessi
 
 eccezione: librerie per analisi opzioni da linea di comando
-
-3. Per ogni requisito: cosa studiare del C
-   Requisito Argomenti C da studiare
-1. Lettura #qubits n - File I/O (fopen, fgets, fscanf)
-
-- Parsing stringhe (sscanf, confronti con strncmp)
-
-2. Lettura #init [...] - Gestione array dinamici
-
-- Parsing stringhe e strutture dati per complessi
-
-3. Parsing #define e #circ - Parsing da file
-
-- Array dinamici
-- Strutture (es. struct per una matrice)
-
-4. Numeri complessi - struct in C
-
-- Implementare somma, prodotto, modulo a mano
-
-5. Moltiplicazione matrice × vettore - Doppio ciclo for
-
-- Uso corretto di indici
-- Allocazione dinamica
-- Operazioni con numeri complessi
-
-6. Simulazione circuito - Cicli for
-
-- Array di matrici / vettori
-- Funzioni
-
-7. Stampa risultato finale - printf con formattazione
-
-- Visualizzazione di numeri complessi
-
-8. Commentare codice - Scrivere commenti efficaci
-
-- Convenzioni di nomi
-
-9. Makefile - Sintassi base Makefile (gcc, all, clean)
-10. README - Scrivere un file di testo con istruzioni chiare
-11. No librerie esterne - Familiarità con funzioni standard C
-
-- Uso solo di <stdio.h>, <stdlib.h>, <string.h>, ecc.
 
 
 main.c	Punto di ingresso. Analizza la linea di comando, chiama le funzioni principali.

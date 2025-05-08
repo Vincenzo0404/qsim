@@ -1,6 +1,8 @@
 #include "parser.h"
 
 complex parse_complex(char *token) {
+    /* Parses a complex number in the form of "a+ib" */
+
     double r_sign = *token == '-' ? -1.0 : 1.0; /* real part sign */
 
     char *imag_sign_ptr = strpbrk(token + 1, "+-");
@@ -28,10 +30,7 @@ InitData parse_init_file(char filename[]) {
         sscanf(content, "#qubits %i", &d.n_qubits); /* reads number of quibits */
 
         complex *s = malloc((1 << d.n_qubits ) * sizeof(complex) ); /* allocating 2^n complex numbers  */
-        if (s == NULL) {
-            printf("%s", "allocazione memoria fallita");
-        }
-        
+    /* TODO deallocare s */
         fgets(content, n_chars, fptr);
         fgets(content, n_chars, fptr); 
 
@@ -52,12 +51,32 @@ InitData parse_init_file(char filename[]) {
             token = strtok(NULL, ","); /* getting next token */
         }
         d.init_state = s;
+        fclose(fptr);
+    } else {
+        printf("s", "couldn't open file init");
     }
-    fclose(fptr);
     return d;
 }
 
-void parse_circ_file(char filename[]) {
+Circuit parse_circ_file(unsigned int n_qubits, char filename[]) {
+    /* parses circ file and returns a Circuit struct */
+    Circuit circuit;
+    circuit.n_qubits = n_qubits;
 
+    unsigned int n = 1 << n_qubits;
+
+    circuit.matrices = malloc(128 * sizeof(ComplexMatrix*)); /* initializing an hash table for 128 pointers to complex matrices*/
+    
+    FILE* fptr = fopen(filename, 'r');
+    if (fptr) {
+        char buffer[128];
+        do {
+            unsigned int len = fgets
+        }
+        while(*buffer == '\n' || sscanf("#define %c"))
+    } else {
+        printf("s", "couldn't open file circ");
+    }
+    
 }
 
