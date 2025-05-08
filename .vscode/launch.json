@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug con make",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/qsim", // il tuo eseguibile
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb", // lascia così se usi Linux
+      "setupCommands": [
+        {
+          "description": "Abilita stampa carina",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "make" // <-- dice di usare `make` prima di fare debug
+    }
+  ]
+}
