@@ -1,6 +1,6 @@
 CC = gcc 
 CFLAGS = -Wall -g 
-OBJS = main.o parser.o 
+OBJS = main.o parser.o circuit.o complex.o
 
 all: $(OBJS)
 	$(CC) $(CFLAGS) -o qsim $(OBJS)  

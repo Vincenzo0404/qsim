@@ -1,10 +1,10 @@
 #ifndef CIRCUIT_H
 #define CIRCUIT_H
-#include "complex_matrix.h"
 
 typedef struct {
     unsigned int n_qubits;
-    complex *matrices;
+    complex ***matrices; /* an array of matrices */
+    complex *state; /* current circuit's state */
     char *order;
 } Circuit;
 
