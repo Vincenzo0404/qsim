@@ -2,17 +2,30 @@
 
 complex parse_complex(char *token) {
     /* Parses a complex number in the form of "a+ib" */
+    unsigned int l = strlen(token);
+    while(*token == ' ') { /* deleting spaces */
+        token += 1;
+    }
+    char *i_ptr = strchr(token, 'i');
 
-    double r_sign = *token == '-' ? -1.0 : 1.0; /* real part sign */
-
-    char *imag_sign_ptr = strpbrk(token + 1, "+-");
-    double i_sign = *imag_sign_ptr == '+' ? 1 : -1 ; /* imaginary part sign */
-
+    double i_sign = 1.0;
+    double i_value = 0.0;
+    double r_value = 0.0;
+    
+    char *end;
+    r_value = strtod(token, &end);
+    if (i_ptr != NULL) {
+        if(i_ptr > token) {/*checking imag part's sign  */
+            i_sign = *(i_ptr - 1) == '-' ? -1.0 : 1.0 ;
+        }
+        if (i_ptr + 1 < token + l - 1) { /* checking imag part's value */
+            i_value = strtod(i_ptr + 1, NULL);
+        }
+        i_value = i_sign * i_value;
+    }
     complex c;
-
-    c.real = r_sign*strtod(token, &imag_sign_ptr); /* casting string to doubles for real and imaginary parts */
-    c.imaginary = i_sign*strtod(imag_sign_ptr + 2, NULL);
-
+    c.imaginary = i_value;
+    c.real = r_value;
     return c;
 }
 
@@ -62,7 +75,7 @@ void trim_string(char* str) {
 }
 
 void parse_circ_file(Circuit circuit, char filename[]) {
-    /* parses circ file setting circuit's matrices */
+    /* parses circ file and computes  */
 
     FILE *fptr = fopen(filename, "r");
     char *line = read_line(fptr);
@@ -83,7 +96,7 @@ char *read_line(FILE* fptr) {
     char c = fgetc(fptr);
     while(c != '\n' && c != EOF) {
         buffer[i] = c;
-        if (i == b_size - 2) { /* reallocating memory for dynamic buffer '\0' */
+        if (i == b_size - 2) { /* reallocating memory for dynamic buffer */
             b_size <<= 1;
             buffer = realloc(buffer, b_size);
         }
@@ -100,19 +113,27 @@ complex** parse_matrix(char *str, unsigned int n) {
     unsigned int i = 0;/* row index */
     unsigned int j = 0;/* col index */
 
-    char *r_start;
-    char *r_end;
-    char *str_col;
-    do {
-        r_start = strchr(str, '(') + 1;
-        r_end = strchr(str, ')') - 1;
+    while (i < n) {
+        char *r_start = strchr(str, '(') + 1;
+        char *r_end = strchr(str, ')');
+        unsigned int l = r_end - r_start;
 
-        while(str_col = strtok(r_start, ",")) {
-            
+        char *r_buf = malloc(l * sizeof(char));
+        strncpy(r_buf, r_start, l);
+        r_buf[l] = '\0';
+        
+        char *saveptr;
+        char *token = strtok_r(r_buf, ",", &saveptr);
+        while(j < n) {
+            m[i][j] = parse_complex(token);
+            token = strtok_r(NULL, ",", &saveptr);
+            j++;
         }
-    } while (r_start != NULL && r_end != NULL);
-
-    
+        j = 0;
+        i ++;
+        free(r_buf);
+        str = r_end + 1;
+    }
     return m;
 }
 
