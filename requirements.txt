@@ -11,6 +11,8 @@ Input
 
  - La sequenza del circuito quantistico da simulare con la direttiva #circ.
 
+<--------------------------------------------------------------------------------------------------------------------------->
+
 Elaborazione
 1. Rappresentare numeri complessi, ed eseguire operazioni: somma, prodotto e modulo.
 
@@ -48,8 +50,6 @@ eccezione: librerie per analisi opzioni da linea di comando
 main.c	Punto di ingresso. Analizza la linea di comando, chiama le funzioni principali.
 parser.c/h	Legge i file di input (#qubits, #init, #define, #circ).
 complex.c/h	Definisce una struct Complex e le funzioni: somma, prodotto, modulo, stampa.
-matrix.c/h	Gestisce matrici complesse e moltiplicazione matrice × vettore.
-simulator.c/h	Coordina l'applicazione delle porte al vettore iniziale.
-utils.c/h	Funzioni di supporto: gestione errori, conversioni, debug.
-Makefile	Compila tutto automaticamente.
+circuit.c/h	Coordina l'applicazione delle porte al vettore iniziale.
+makefile	Compila tutto automaticamente.
 README.txt	Spiega come compilare ed eseguire il progetto.
