@@ -1,7 +1,6 @@
 #include "parser.h"
 
 char *read_line(FILE* fptr) {
-    /* reads a whole line from fptr */
     unsigned int b_size = 256;
     unsigned int i = 0;
     char *buffer = malloc(b_size);
@@ -15,43 +14,41 @@ char *read_line(FILE* fptr) {
         c = fgetc(fptr);
         i++;
     }
-    buffer[i] = '\0';
+    buffer[i] = fgetc(fptr); /* including '\n' */
+    
     return buffer;
 }
 
-void trim_string(char* str) {
-    char *start = strchr(str, '[');
-    char *end = strchr(str, ']'); 
+void trim_string(char **str, char s_char, char e_char) {
+    char *start = strchr(*str, s_char);
+    char *end = strchr(*str, e_char); 
 
-    unsigned int len = end - start - 1;
-
-    strncpy(str, start + 1, len);
-    str[len] = '\0';
+    *str = start + 1;
+    (*str)[end - start - 1] = '\0';
 }
 
 
 complex parse_complex(char *token) {
-    /* Parses a complex number in the form of "a+ib" */
     unsigned int l = strlen(token);
     while(*token == ' ') { /* deleting spaces */
         token += 1;
     }
-    char *i_ptr = strchr(token, 'i');
+    char *i_ptr = strchr(token, 'i'); /* pointer to 'i' letter */
 
     double i_sign = 1.0;
     double i_value = 0.0;
     double r_value = 0.0;
     
     char *end;
-    r_value = strtod(token, &end);
+    r_value = strtod(token, &end); /* parses real part if any */
     if (i_ptr != NULL) {
-        if(i_ptr > token) {/*checking imag part's sign  */
+        if(i_ptr > token) { /* if a != 0 or b < 0*/
             i_sign = *(i_ptr - 1) == '-' ? -1.0 : 1.0 ;
         }
-        if (i_ptr + 1 < token + l - 1) { /* checking imag part's value */
+        if (i_ptr + 1 < token + l - 1) { /* if b != 1*/
             i_value = strtod(i_ptr + 1, NULL);
         }
-        i_value = i_value == 0 ? 1 : i_value;
+        i_value = i_value == 0 ? 1 : i_value; /* handles implicit 1 (e.g. a+i)  */
         i_value = i_sign * i_value;
     }
     complex c;
@@ -60,70 +57,86 @@ complex parse_complex(char *token) {
     return c;
 }
 
-Circuit parse_init_file(char filename[]) {
-    /* initializes the circuit with n_qubits and init state */
-    FILE* fptr = fopen(filename, "r");
-    Circuit c;
+Circuit parse_init_file(char *path) {
+    FILE* fptr = fopen(path, "r");
     
+    Circuit  c;
     if (fptr != NULL) {
+        init_circuit(&c);
+        
+        char *line = NULL;
+        line = read_line(fptr);
+        if(sscanf(line, "#qubits %i", &c.n_qubits)) {; /* reads number of quibits */
+            free(line);
+            line = read_line(fptr);
 
-        unsigned int n_chars = 80;
-        char content[n_chars];
-
-        fgets(content, n_chars, fptr);
-        sscanf(content, "#qubits %i", &c.n_qubits); /* reads number of quibits */
-
-        complex *s = malloc((1 << c.n_qubits ) * sizeof(complex) ); /* allocating 2^n complex numbers  */
-    /* TODO deallocare s */
-        fgets(content, n_chars, fptr);
-        fgets(content, n_chars, fptr); 
-
-        trim_string(content);
-
-        char *token = strtok(content, ",");
-        unsigned int i = 0;
-        while (token != NULL) {
-            s[i] = parse_complex(token); /* parsing i-th  complex number*/
-            i++;
-            token = strtok(NULL, ","); /* getting next token */
+            if(strncmp(line, "#init ", 6) == 0) {
+                complex *s = malloc((1 << c.n_qubits ) * sizeof(complex) ); /* allocating 2^n init state vector  */
+                char *copy = line; /* making a copy in order to free with the original ptr (line) */
+                trim_string(&copy, '[', ']');
+        
+                char *token = strtok(copy, ",");
+                unsigned long int n = 1 << c.n_qubits;
+                unsigned int i = 0;
+                while (i < n && token != NULL) {
+                    s[i] = parse_complex(token); /* parsing i-th  complex number*/
+                    i++;
+                    token = strtok(NULL, ","); /* getting next token */
+                } 
+                free(line);
+                c.state = s;
+                fclose(fptr);
+            } else {
+                fprintf(stderr, "Error: #init directive is misformatted %s\n",line);
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            fprintf(stderr, "Error: #qubits directive is misformatted %s\n", line);
+            exit(EXIT_FAILURE);
         }
-        c.state = s;
-        fclose(fptr);
     } else {
-        printf("%s", "couldn't open file init");
+        fprintf(stderr, "Error: couldn't open init file at %s\n", path);
+        exit(EXIT_FAILURE);
     }
     return c;
 }
 
-void parse_circ_file(Circuit *circuit, char filename[]) {
-    /* parses circ file and computes  */
-
-    FILE *fptr = fopen(filename, "r");
-    char *line = read_line(fptr);
-    unsigned char key;
-    while(sscanf(line, "#define %c", &key)) {
-        trim_string(line);
-        circuit->gates[key] = parse_matrix(line, 1 << circuit->n_qubits);
-        free(line);
-        read_line(fptr);
-        line = read_line(fptr);
-    }
-    line += 6;
-    unsigned long int i = 0;
-    unsigned int b_size = 128;
-    char *order = malloc(128);
-    char *token = strtok(line, " ");
-    while (token != NULL) {
-        if (i >= b_size-1) {
-            b_size <<= 1;
-            order = realloc(order, b_size);
+void parse_circ_file(Circuit *circuit, char *path) {
+    FILE *fptr = fopen(path, "r");
+    if (fptr != NULL) {
+        char *line = read_line(fptr);
+        char *copy;
+        unsigned char key;
+        while(sscanf(line, "#define %c", &key)) { /* parsing each #define directive */
+            copy = line;
+            trim_string(&copy, '[', ']');
+            circuit->gates[key] = parse_matrix(copy, 1 << circuit->n_qubits);
+            free(line);
+            line = read_line(fptr);
         }
-        order[i] = *token;
-        token = strtok(NULL, " ");
-        i++;
+        copy = line;
+        copy += 6; /* skip "#circ " */
+        unsigned long int i = 0;
+        unsigned int b_size = 128;
+        char *order = malloc(128);
+        char *token = strtok(copy, " ");
+        while (token != NULL) { /* read each letter after #circ */
+            if (i >= b_size-1) {
+                b_size <<= 1;
+                order = realloc(order, b_size);
+            }
+            order[i] = *token;
+            token = strtok(NULL, " ");
+            i++;
+        }
+        free(line);
+        fclose(fptr);
+        order[i] = '\0';
+        circuit->order = order;
+    } else {
+        fprintf(stderr, "Error: couldn't open circ file at %s\n", path);
+        exit(EXIT_FAILURE);
     }
-    order[i] = '\0';
-    circuit->order = order;
 }
 
 
@@ -134,7 +147,7 @@ complex** parse_matrix(char *str, unsigned int n) {
     unsigned int j = 0;/* col index */
     
     while (i < n) {
-        m[i] = malloc(n * sizeof(complex)); /* m[i] is an array of complex numbers */
+        m[i] = malloc(n * sizeof(complex)); /* m[i] is an array of n complex numbers */
 
         char *r_start = strchr(str, '(') + 1;
         char *r_end = strchr(str, ')');
