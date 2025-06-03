@@ -22,7 +22,7 @@ typedef struct {
  * @param n Length of the vectors.
  * @return Resulting complex number from the dot product.
  */
-complex complex_vector_mul(complex *v1, complex *v2, unsigned long int n);
+complex complex_vector_mul(complex *v1, complex *v2, unsigned long long int n);
 
 /**
  * @brief Multiplies two complex numbers.

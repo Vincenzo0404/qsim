@@ -1,8 +1,8 @@
 #include "complex.h"
 
-complex complex_vector_mul(complex *v1, complex *v2, unsigned long int n) {
+complex complex_vector_mul(complex *v1, complex *v2, unsigned long long int n) {
     complex c = {0.0, 0.0};
-    for (unsigned long int i = 0; i < n; i++) {
+    for (unsigned long long int i = 0; i < n; i++) {
         c = complex_sum(c, complex_mul(v1[i], v2[i]));
     }
     return c;
@@ -40,7 +40,7 @@ void complex_print(complex c) {
         else if (c.imaginary < 0)
             printf("-");
 
-        float abs_imag = c.imaginary < 0 ? -c.imaginary : c.imaginary;
+        double abs_imag = c.imaginary < 0 ? -c.imaginary : c.imaginary;
 
         if (abs_imag == 1.0f)
             printf("i");

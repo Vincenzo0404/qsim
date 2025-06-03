@@ -14,11 +14,18 @@ char *read_line(FILE* fptr) {
         c = fgetc(fptr);
         i++;
     }
-    buffer[i] = fgetc(fptr); /* including '\n' */
+    buffer[i] = '\0';
     
     return buffer;
 }
 
+int getline_skip_blank(char **line, size_t *len, FILE *fptr) {
+    __ssize_t read;
+    while ((read = getline(line, len, fptr)) != -1) {
+        if (strcmp(*line, "\n") != 0) return 1; //returns when a line isn't blank
+    }
+    return -1; // EOF or all lines are blank
+}
 void trim_string(char **str, char s_char, char e_char) {
     char *start = strchr(*str, s_char);
     char *end = strchr(*str, e_char); 
@@ -63,21 +70,23 @@ Circuit parse_init_file(char *path) {
     Circuit  c;
     if (fptr != NULL) {
         init_circuit(&c);
+
+        __ssize_t read;
+        size_t len = 0;
         
         char *line = NULL;
-        line = read_line(fptr);
-        if(sscanf(line, "#qubits %i", &c.n_qubits)) {; /* reads number of quibits */
-            free(line);
-            line = read_line(fptr);
+        read = getline_skip_blank(&line, &len, fptr);
+        if(read != -1 && sscanf(line, "#qubits %i", &c.n_qubits)) {; /* reads number of quibits */
+            read = getline_skip_blank(&line, &len, fptr);
 
-            if(strncmp(line, "#init ", 6) == 0) {
+            if(read != -1 && strncmp(line, "#init ", 6) == 0) {
                 complex *s = malloc((1 << c.n_qubits ) * sizeof(complex) ); /* allocating 2^n init state vector  */
                 char *copy = line; /* making a copy in order to free with the original ptr (line) */
                 trim_string(&copy, '[', ']');
         
                 char *token = strtok(copy, ",");
-                unsigned long int n = 1 << c.n_qubits;
-                unsigned int i = 0;
+                unsigned long long int n = 1 << c.n_qubits;
+                unsigned long long int i = 0;
                 while (i < n && token != NULL) {
                     s[i] = parse_complex(token); /* parsing i-th  complex number*/
                     i++;
@@ -104,15 +113,17 @@ Circuit parse_init_file(char *path) {
 void parse_circ_file(Circuit *circuit, char *path) {
     FILE *fptr = fopen(path, "r");
     if (fptr != NULL) {
-        char *line = read_line(fptr);
+        char *line;
+        size_t len;
+
+        getline_skip_blank(&line, &len, fptr);
         char *copy;
         unsigned char key;
         while(sscanf(line, "#define %c", &key)) { /* parsing each #define directive */
             copy = line;
             trim_string(&copy, '[', ']');
             circuit->gates[key] = parse_matrix(copy, 1 << circuit->n_qubits);
-            free(line);
-            line = read_line(fptr);
+            getline_skip_blank(&line, &len, fptr);
         }
         copy = line;
         copy += 6; /* skip "#circ " */
@@ -143,8 +154,8 @@ void parse_circ_file(Circuit *circuit, char *path) {
 complex** parse_matrix(char *str, unsigned int n) {
     complex **m = malloc(n * sizeof(complex*)); /* matrix is an array of n ptrs to complex arrays */
     
-    unsigned int i = 0;/* row index */
-    unsigned int j = 0;/* col index */
+    unsigned long long int i = 0;/* row index */
+    unsigned long long int j = 0;/* col index */
     
     while (i < n) {
         m[i] = malloc(n * sizeof(complex)); /* m[i] is an array of n complex numbers */
@@ -159,7 +170,7 @@ complex** parse_matrix(char *str, unsigned int n) {
         
         char *saveptr;
         char *token = strtok_r(r_buf, ",", &saveptr);
-        while(j < n) {
+        while(j < n && token != NULL) {
             m[i][j] = parse_complex(token); /* populating the matrix */
             token = strtok_r(NULL, ",", &saveptr);
             j++;

@@ -35,7 +35,7 @@ This will compile all `.c` files and produce the executable `qsim`.
 Run the simulator specifying the two input files:
 
 ```bash
-./qsim <init_file> <circuit_file>
+./qsim [init_file] [circuit_file]
 ```
 
 Example:
@@ -70,7 +70,8 @@ If no arguments are provided, the program uses the default files in the current 
 - `#qubits`: number of qubits (integer ≥ 1).
 - `#init`: vector of complex numbers in square brackets, separated by commas.
 
-  - Supported formats: `a+i`b.
+  - Supported formats: `a+ib`.
+  - `a` and `b` are any real number in the form of `int_part.decimal_part` e.g. `-3.91`
 
 ### `circ-ex.txt` – Circuit Definition
 
@@ -85,7 +86,7 @@ If no arguments are provided, the program uses the default files in the current 
 ```
 
 - `#define <letter>`: defines a square matrix of size `2^n x 2^n` (quantum gate). `<letter>` must be a single ASCII character.
-- `#circ`: sequence of letters representing the gates to apply in order.
+- `#circ`: sequence of letters representing the gates to apply to the initial state in order.
 
 ---
 
@@ -97,19 +98,8 @@ The simulator prints to stdout:
 
 ---
 
-## 🧽 Cleaning Up
-
-To remove compiled object files and the executable:
-
-```bash
-make clean
-```
-
----
-
 ## ❗ Notes
 
-- The simulator **does not perform real quantum computation**, but simulates the evolution of a state vector using complex numbers.
 - Gate matrices must be **square** and compatible with the specified number of qubits.
 - Complex numbers are printed in the form `a+ib`.
 

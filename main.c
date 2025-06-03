@@ -15,9 +15,10 @@ int main (int argc, char **argv) {
 
     Circuit c = parse_init_file(init_file);
     parse_circ_file(&c, circuit_file);
-    print_all_gates(&c);
+    /* print_state(&c); */  //stampa lo stato iniziale
+   /*  print_all_gates(&c) */; //stampa i gates
     compute_circuit(&c);
-    print_state(&c);
+    print_state(&c); //stampa lo stato finale 
     free_circuit(&c);
     return 0;
 }

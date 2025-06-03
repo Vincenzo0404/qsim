@@ -12,9 +12,9 @@ void apply_gate(Circuit *c, unsigned char gate_name) {
         fprintf(stderr,"Error: gate %c is not defined. \n", gate_name);
         exit(EXIT_FAILURE);
     }    
-    unsigned long int n = 1 << c->n_qubits;
+    unsigned long long int n = 1 << c->n_qubits;
     complex *new_state = malloc(n * sizeof(complex)); /* the new state vector */
-    for (unsigned long int i = 0; i < n; i++) { /* computing matrix vector product */
+    for (unsigned long long int i = 0; i < n; i++) { /* computing matrix vector product */
         new_state[i] = complex_vector_mul(gate[i], c->state, n);
     }
     free(c->state);
@@ -28,10 +28,10 @@ void compute_circuit(Circuit *c) {
     }
 }
 void free_circuit(Circuit *c) {
-    unsigned long int n = 1 << c->n_qubits; 
+    unsigned long long int n = 1 << c->n_qubits; 
     for (int i = 0; i < 256; i++) { /* for each gate */
         if (c->gates[i] != NULL) {
-            for (unsigned long int j = 0; j < n; j++) {/* free all arrays of the gate */
+            for (unsigned long long int j = 0; j < n; j++) {/* free all arrays of the gate */
                 if (c->gates[i][j] != NULL) {
                     free(c->gates[i][j]);
                 }
@@ -40,12 +40,12 @@ void free_circuit(Circuit *c) {
         }
     }
     free(c->state);/* free the state vector */
-    free(c->order)/* free the order string */;
+    free(c->order);/* free the order string */
 }
 
 
 void print_state(Circuit *c) {
-    for (unsigned long int i = 0; i < 1 << c->n_qubits; i++) {
+    for (unsigned long long int i = 0; i < 1 << c->n_qubits; i++) {
         complex_print(c->state[i]);
         printf("\n");
     }
@@ -57,7 +57,7 @@ void print_gate(Circuit *c, unsigned char gate_name) {
         exit(EXIT_FAILURE);
     }
 
-    unsigned long int n = 1 << c->n_qubits;
+    unsigned long long int n = 1 << c->n_qubits;
     complex **gate = c->gates[gate_name];
 
     for (unsigned long int i = 0; i < n; i++) {
